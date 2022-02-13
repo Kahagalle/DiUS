@@ -6,16 +6,16 @@ Assuming [node](https://nodejs.org/) is already installed, in your terminal:
 
 ```shell
 # Clone this repository
-`git clone git@github.com:Kahagalle/DiUS.git`
+git clone git@github.com:Kahagalle/DiUS.git
 
 # Install npm dependencies
-`npm install`
+npm install
 
 # Run app
-`npm start`
+npm start
 
 # Test app
-`npm test`
+npm test
 ```
 
 ## Introduction

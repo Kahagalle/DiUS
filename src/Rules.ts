@@ -1,22 +1,28 @@
-import {catalogue, definedRules} from "./Database";
+import {DBService} from "./DBService";
 
 export class Rules {
 
     private total: number;
+    private catalogue: Array<any>;
+    private definedRules: Array<any>;
 
     constructor(scannedSKUs: Array<string>, total: number) {
         this.total = total;
+        
+        let dbService = new DBService();
+        this.definedRules = dbService.getDefinedRules();
+        this.catalogue = dbService.getCatalogue();
 
-        for (let rule of definedRules) {
+        for (let rule of this.definedRules) {
             switch(rule.type) {
                 case "freeProducts":
-                    this.freeProducts(scannedSKUs, rule.sku, rule.buyAmount, rule.freeAmount);
+                    this.freeProducts(scannedSKUs, rule);
                     break; 
                 case "bulkDiscount":
-                    this.bulkDiscount(scannedSKUs, rule.sku, rule.minAmountForDiscount, rule.discount);
+                    this.bulkDiscount(scannedSKUs, rule);
                     break; 
                 case "bundleProducts":
-                    this.bundleProducts(scannedSKUs, rule.buySku, rule.buyAmount, rule.freeSku, rule.freeAmount);
+                    this.bundleProducts(scannedSKUs, rule);
                     break; 
             }
         }        
@@ -25,47 +31,40 @@ export class Rules {
     /**
      * Buy 'buyAmount' number of products and get 'freeAmount' number of products free
      * @param {Array<string>} products
-     * @param {string} sku
-     * @param {number} buyAmount
-     * @param {number} freeAmount
+     * @param {any} rule
      */
-    private freeProducts(products: Array<string>, sku: string, buyAmount: number, freeAmount: number): void {
-        let catalogueProduct = catalogue.find(item => item.sku === sku),
-            numOfProducts = products.filter(product => product === sku).length,
-            freeProducts = Math.floor(numOfProducts/buyAmount);
+    private freeProducts(products: Array<string>, rule: any): void {
+        let catalogueProduct = this.catalogue.find(item => item.sku === rule.sku),
+            numOfProducts = products.filter(product => product === rule.sku).length,
+            freeProducts = Math.floor(numOfProducts/rule.buyAmount);
         
         if (freeProducts && catalogueProduct) {
-            this.total -= (freeProducts * freeAmount) * catalogueProduct.price;
+            this.total -= (freeProducts * rule.freeAmount) * catalogueProduct.price;
         }
     }
 
     /**
      * Buy 'minAmountForDiscount' number of products and drop the price for each item by 'discount' amount
      * @param {Array<string>} products
-     * @param {string} sku
-     * @param {number} minAmountForDiscount
-     * @param {number} discount
+     * @param {any} rule
      */
-    private bulkDiscount(products: Array<string>, sku: string, minAmountForDiscount: number, discount: number): void {
-        let numOfProducts = products.filter(product => product === sku).length;
+    private bulkDiscount(products: Array<string>, rule: any): void {
+        let numOfProducts = products.filter(product => product === rule.sku).length;
         
-        if (numOfProducts >  minAmountForDiscount) {
-            this.total -= numOfProducts * discount;
+        if (numOfProducts > rule.minAmountForDiscount) {
+            this.total -= numOfProducts * rule.discount;
         }
     }
 
     /**
      * Buy 'buySku' items 'buyAmount' times and get free 'freeAmount' number of 'freeSku' items
      * @param {Array<string>} products
-     * @param {string} buySku
-     * @param {number} buyAmount
-     * @param {string} freeSku
-     * @param {number} freeAmount
+     * @param {any} rule
      */
-    private bundleProducts(products: Array<string>, buySku: string, buyAmount: number, freeSku: string, freeAmount: number): void {
-        let catalogueFreeProduct = catalogue.find(item => item.sku === freeSku),
-            numOfBuyProducts = Math.floor(products.filter(product => product === buySku).length / buyAmount),
-            numOfFreeProducts = Math.floor(products.filter(product => product === freeSku).length / freeAmount);
+    private bundleProducts(products: Array<string>, rule: any): void {
+        let catalogueFreeProduct = this.catalogue.find(item => item.sku === rule.freeSku),
+            numOfBuyProducts = Math.floor(products.filter(product => product === rule.buySku).length / rule.buyAmount),
+            numOfFreeProducts = Math.floor(products.filter(product => product === rule.freeSku).length / rule.freeAmount);
 
         if (numOfBuyProducts && numOfFreeProducts) {
             this.total -= ((numOfBuyProducts >= numOfFreeProducts) ? numOfFreeProducts : numOfBuyProducts) * catalogueFreeProduct.price;

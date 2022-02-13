@@ -23,7 +23,7 @@ npm test
 This project contains a simple implementation of a checkout system for DiUS. Following are some of the assumptions and explanations for the code design.
 
 - Assumed the checkout system will eventually turned into an API for DiUS, no UI was implemented. So the API implementation eventually utilize `calculateTotal` function to calculate and send back the total of scanned SKUs.
-- The `src/Database.ts` file was used to mimic the database.
+- The `src/DBService.ts` file was used to mimic the database connection.
 - Database contains the rule so rule can be changed without changing the code.
 - The code only need to be changed if any new rule type is introduced.
 - Minimal amount of test cases were introduced.
